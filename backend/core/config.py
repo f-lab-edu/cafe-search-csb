@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
 
+    SECRET_KEY: str
+    SECRET_ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+
     class Config:
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = "utf-8"
