@@ -25,5 +25,22 @@ class Settings(BaseSettings):
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = "utf-8"
 
+class TestSettings(BaseSettings):
+    TEST_DB_USERNAME: str
+    TEST_DB_PASSWORD: SecretStr
+    TEST_DB_HOST: str
+    TEST_DB_PORT: int
+    TEST_DB_NAME: str
+
+    SECRET_KEY: str
+    SECRET_ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+    class Config:
+        env_file = str(BASE_DIR / ".env")
+        env_file_encoding = "utf-8"
+
+
 
 settings = Settings()
