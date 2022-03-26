@@ -3,7 +3,7 @@ from pydantic import BaseSettings, SecretStr
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
 
 
     class Config:

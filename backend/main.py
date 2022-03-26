@@ -3,7 +3,7 @@ from core.config import settings
 from fastapi import FastAPI
 
 
-def include_router(app):
+def include_router(app: FastAPI):
     app.include_router(api_router)
 
 
