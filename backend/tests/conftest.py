@@ -7,12 +7,14 @@ from typing import Any, Generator
 
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from apis.base import api_router
 from db.base import Base
 from db.session import get_db
-from core.config import TestSettings
+from core.config import settings
+
 
 def start_application() -> FastAPI:
     app = FastAPI()
@@ -20,7 +22,6 @@ def start_application() -> FastAPI:
     return app
 
 
-settings = TestSettings()
 engine = create_engine(
     "mysql+pymysql://{username}:{password}@{host}:{port}/{name}?charset=utf8mb4".format(
         username=settings.TEST_DB_USERNAME,
@@ -33,12 +34,14 @@ engine = create_engine(
 
 SessionTesting = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="module")
 def app() -> Generator[FastAPI, Any, None]:
     Base.metadata.create_all(engine)
     _app = start_application()
     yield _app
     Base.metadata.drop_all(engine)
+
 
 @pytest.fixture(scope="module")
 def db_session(app: FastAPI) -> Generator[SessionTesting, Any, None]:
@@ -50,6 +53,7 @@ def db_session(app: FastAPI) -> Generator[SessionTesting, Any, None]:
     transaction.rollback()
     connection.close()
 
+
 @pytest.fixture(scope="module")
 def client(
     app: FastAPI, db_session: SessionTesting
@@ -59,7 +63,7 @@ def client(
             yield db_session
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = _get_test_db
     with TestClient(app) as client:
         yield client

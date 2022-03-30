@@ -1,6 +1,6 @@
 from pydantic import BaseSettings, SecretStr
-
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -19,10 +19,10 @@ class Settings(BaseSettings):
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-
     class Config:
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = "utf-8"
+
 
 class TestSettings(BaseSettings):
     TEST_DB_USERNAME: str
@@ -35,11 +35,15 @@ class TestSettings(BaseSettings):
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-
     class Config:
         env_file = str(BASE_DIR / ".env")
         env_file_encoding = "utf-8"
 
 
+def get_settings():
+    if os.getenv("APP_ENV", "develop") == "TEST":
+        return TestSettings()
+    return Settings
 
-settings = Settings()
+
+settings = get_settings()
