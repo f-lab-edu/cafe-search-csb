@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql8.0
+        image: mysql:8.0
         ports:
           - 3306:3306
         env:
-          MYSQL_USER: test
+          MYSQL_USER: admin
           MYSQL_PASSWORD: 1234
           MYSQL_ROOT_PASSWORD: 1234
           MYSQL_DATABASE: teting
@@ -42,7 +42,7 @@ jobs:
 
       - name: Test
         env:
-          DB_USERNAME: test
+          DB_USERNAME: admin
           DB_PASSWORD: 1234
           DB_HOST: 127.0.0.1
           DB_PORT: 3306

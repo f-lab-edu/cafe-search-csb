@@ -25,11 +25,11 @@ class Settings(BaseSettings):
 
 
 class TestSettings(BaseSettings):
-    TEST_DB_USERNAME: str
-    TEST_DB_PASSWORD: SecretStr
-    TEST_DB_HOST: str
-    TEST_DB_PORT: int
-    TEST_DB_NAME: str
+    DB_USERNAME: str
+    DB_PASSWORD: SecretStr
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
 
     SECRET_KEY: str
     SECRET_ALGORITHM = "HS256"
@@ -41,7 +41,7 @@ class TestSettings(BaseSettings):
 
 
 def get_settings():
-    if os.getenv("APP_ENV", "develop") == "TEST":
+    if os.getenv("APP_ENV", "TEST") == "TEST":
         return TestSettings()
     return Settings
 

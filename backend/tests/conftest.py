@@ -24,11 +24,11 @@ def start_application() -> FastAPI:
 
 engine = create_engine(
     "mysql+pymysql://{username}:{password}@{host}:{port}/{name}?charset=utf8mb4".format(
-        username=settings.TEST_DB_USERNAME,
-        password=settings.TEST_DB_PASSWORD.get_secret_value(),
-        host=settings.TEST_DB_HOST,
-        port=settings.TEST_DB_PORT,
-        name=settings.TEST_DB_NAME,
+        username=settings.DB_USERNAME,
+        password=settings.DB_PASSWORD.get_secret_value(),
+        host=settings.DB_HOST,
+        port=settings.DB_PORT,
+        name=settings.DB_NAME,
     )
 )
 
