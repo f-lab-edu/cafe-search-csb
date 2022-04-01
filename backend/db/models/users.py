@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Boolean
-
+from sqlalchemy.orm import relationship
 from db.base_class import Base
 from db.models.base import BaseMixin
 
@@ -9,3 +9,4 @@ class User(Base, BaseMixin):
     email = Column(String(60), unique=True, nullable=False, index=True)
     hashed_password = Column(String(100), nullable=False)
     is_superuser = Column(Boolean(), default=False)
+    comments = relationship("Comment", back_populates="user")

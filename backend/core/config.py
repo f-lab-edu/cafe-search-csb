@@ -31,7 +31,7 @@ class TestSettings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
 
-    SECRET_KEY: str
+    SECRET_KEY: str = "secret"
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -41,9 +41,9 @@ class TestSettings(BaseSettings):
 
 
 def get_settings():
-    if os.getenv("APP_ENV", "TEST") == "TEST":
+    if os.getenv("APP_ENV", "DEVELOP") == "TEST":
         return TestSettings()
-    return Settings
+    return Settings()
 
 
 settings = get_settings()
