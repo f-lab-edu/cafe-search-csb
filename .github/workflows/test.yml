@@ -15,9 +15,9 @@ jobs:
           - 3306:3306
         env:
           MYSQL_USER: admin
-          MYSQL_PASSWORD: 1234
-          MYSQL_ROOT_PASSWORD: 1234
-          MYSQL_DATABASE: teting
+          MYSQL_PASSWORD: sbjo
+          MYSQL_ROOT_PASSWORD: sbjo
+          MYSQL_DATABASE: testing
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
@@ -43,7 +43,7 @@ jobs:
       - name: Test
         env:
           DB_USERNAME: admin
-          DB_PASSWORD: 1234
+          DB_PASSWORD: sbjo
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_NAME: testing
