@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from typing import Any, Generator
 
 import sys
@@ -14,6 +14,7 @@ from apis.base import api_router
 from db.base import Base
 from db.session import get_db
 from core.config import settings
+from tests.utils import authentication_token_from_email
 
 
 def start_application() -> FastAPI:
@@ -35,7 +36,7 @@ engine = create_engine(
 SessionTesting = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def app() -> Generator[FastAPI, Any, None]:
     Base.metadata.create_all(engine)
     _app = start_application()
@@ -43,7 +44,7 @@ def app() -> Generator[FastAPI, Any, None]:
     Base.metadata.drop_all(engine)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db_session(app: FastAPI) -> Generator[SessionTesting, Any, None]:
     connection = engine.connect()
     transaction = connection.begin()
@@ -54,7 +55,7 @@ def db_session(app: FastAPI) -> Generator[SessionTesting, Any, None]:
     connection.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client(
     app: FastAPI, db_session: SessionTesting
 ) -> Generator[TestClient, Any, None]:
@@ -67,3 +68,27 @@ def client(
     app.dependency_overrides[get_db] = _get_test_db
     with TestClient(app) as client:
         yield client
+
+
+@pytest.fixture(scope="function")
+def normal_user_token_headers(client: TestClient, db_session: Session):
+    return authentication_token_from_email(
+        client=client, email=settings.TEST_USER_EMAIL, db=db_session, is_superuser=False
+    )
+
+
+@pytest.fixture(scope="function")
+def admin_token_headers(client: TestClient, db_session: Session):
+    return authentication_token_from_email(
+        client=client, email=settings.TEST_ADMIN_EMAIL, db=db_session, is_superuser=True
+    )
+
+
+@pytest.fixture(scope="function")
+def other_user_token_headers(client: TestClient, db_session: Session):
+    return authentication_token_from_email(
+        client=client,
+        email=settings.TEST_SECOND_USER_EMAIL,
+        db=db_session,
+        is_superuser=False,
+    )
