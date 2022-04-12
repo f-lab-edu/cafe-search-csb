@@ -34,7 +34,7 @@ class TestSettings(BaseSettings):
     TEST_USER_EMAIL = "sbjo@naver.com"
     TEST_USER_PASSWORD = "sbjo"
     TEST_ADMIN_EMAIL = "admin@naver.com"
-    TEST_SECOND_USER_EMAIL: "sb@naver.com"
+    TEST_SECOND_USER_EMAIL = "sb@naver.com"
 
     SECRET_KEY: str = "secret"
     SECRET_ALGORITHM = "HS256"
