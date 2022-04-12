@@ -3,16 +3,19 @@ from apis.version1.route_login import get_current_user_from_token
 from db.session import get_db
 from db.models.users import User
 from db.logics.cafes import (
+    create_new_cafe,
     search_cafe,
     get_cafe_by_id,
+    get_all_cafes,
     delete_cafe_by_id,
     create_comment,
+    get_comments_by_cafeid,
     get_comment_by_id,
     delete_comment_by_id,
+    update_cafe_by_id,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
-
-from schemas.cafes import Cafe, CommentCreate, ShowComment
+from schemas.cafes import CafeCreate, ShowCafe, CommentCreate, ShowComment
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -24,7 +27,62 @@ class LimitParams:
         self.limit = limit
 
 
-@router.get("/", response_model=List[Cafe])
+@router.post("/create", response_model=ShowCafe)
+def create_cafe(
+    cafe: CafeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+):
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Only Admin can Create Cafe",
+        )
+    cafe = create_new_cafe(cafe=cafe, db=db)
+    return cafe
+
+
+@router.get("/get/{id}", response_model=ShowCafe)
+def read_cafe(id: int, db: Session = Depends(get_db)):
+    cafe = get_cafe_by_id(id=id, db=db)
+    if not cafe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Cafe with this ID {id} does not exist",
+        )
+    return cafe
+
+
+@router.get("/all", response_model=List[ShowCafe])
+def read_cafes(
+    db: Session = Depends(get_db), params: LimitParams = Depends(LimitParams)
+):
+    cafes = get_all_cafes(db=db, limit=params.limit)
+    return cafes
+
+
+@router.post("/update/{id}")
+def update_cafe(
+    id: int,
+    cafe: CafeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+):
+    print("Current User : ", current_user.is_superuser)
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Only Admin can update cafe info",
+        )
+    msg = update_cafe_by_id(id=id, cafe=cafe, db=db)
+    if not msg:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Cafe with Id {id} not found"
+        )
+    return {"msg": "Updated Successfully"}
+
+
+@router.get("/search", response_model=List[ShowCafe])
 def searching_cafe(
     cafename: str = None,
     location: str = None,
@@ -52,20 +110,22 @@ def delete_cafe(
     current_user: User = Depends(get_current_user_from_token),
 ):
     if not current_user.is_superuser:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Only Admin can delete cafe",
         )
 
     result = delete_cafe_by_id(id=id, db=db)
     if not result:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Can't Find Cafe"
         )
     return {"msg": "Deleted"}
 
 
-@router.post("/{cafeid}/comment", response_model=ShowComment)
+@router.post(
+    "/{cafeid}/comment", response_model=ShowComment, status_code=status.HTTP_201_CREATED
+)
 def add_comment(
     cafeid: int,
     comment: CommentCreate,
@@ -78,6 +138,20 @@ def add_comment(
     return comment
 
 
+@router.get("/{cafeid}/comments", response_model=List[ShowComment])
+def read_comments(
+    cafeid: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token),
+):
+    comments = get_comments_by_cafeid(cafeid=cafeid, db=db)
+    if not comments:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Can't Find Comment"
+        )
+    return comments
+
+
 @router.delete("/comments/{commentid}/delete")
 def delete_comment(
     commentid: int,
@@ -86,13 +160,13 @@ def delete_comment(
 ):
     comment = get_comment_by_id(commentid=commentid, db=db)
     if not comment:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Can't Find Comment"
         )
     if comment.userid != current_user.id:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Can't Delete Other's Comment",
         )
-    delete_comment_by_id(commentid=commentid, userid=current_user.id, db=db)
+    delete_comment_by_id(commentid=commentid, db=db)
     return {"msg": "Deleted"}

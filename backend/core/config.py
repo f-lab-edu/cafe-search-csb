@@ -31,6 +31,11 @@ class TestSettings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
 
+    TEST_USER_EMAIL: str
+    TEST_USER_PASSWORD: str
+    TEST_ADMIN_EMAIL: str
+    TEST_SECOND_USER_EMAIL: str
+
     SECRET_KEY: str = "secret"
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30

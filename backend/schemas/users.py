@@ -5,6 +5,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    is_superuser: bool = False
 
 
 class ShowUser(BaseModel):
