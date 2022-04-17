@@ -17,7 +17,7 @@ jobs:
           MYSQL_USER: admin
           MYSQL_PASSWORD: sbjo
           MYSQL_ROOT_PASSWORD: sbjo
-          MYSQL_DATABASE: testing
+          MYSQL_DATABASE: cafe_test
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
@@ -41,12 +41,14 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Test
+      - name: Test & Publish code coverage
         env:
           DB_USERNAME: admin
           DB_PASSWORD: sbjo
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
-          DB_NAME: testing
-        run:
-          pytest
+          DB_NAME: cafe_test
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        uses: paambaati/codeclimate-action@v3.0.0
+        with:
+          coverageCommand: coverage run --source=backend -m pytest -v backend/tests
