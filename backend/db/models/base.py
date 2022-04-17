@@ -1,4 +1,5 @@
 from db.base_class import Base
+
 from sqlalchemy import Column, Integer, DateTime, func
 
 class BaseMixin:

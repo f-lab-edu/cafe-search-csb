@@ -1,7 +1,15 @@
 fastapi
 uvicorn
 sqlalchemy
-
 pydantic
 pydantic[email, dotenv]
 pymysql
+pymysql
+pydantic[dotenv]
+sqlalchemy
+fastapi
+requests
+pytest
+uvicorn[standard]
+python-jose[cryptography]
+passlib[bcrypt]

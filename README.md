@@ -7,22 +7,24 @@ CAFE-SEARCH-CSB
 ├─ README.MD
 ├─ requirements.txt
 └─backend/
-  ├─apis
-  │ ├─version1
+  ├─apis/
+  │ ├─version1/
   │ │ └─ route_users.py
   │ └─ base.py
-  ├─core
+  ├─core/
   │  └─ config.py
-  ├─db
-  │  ├─logics
+  ├─db/
+  │  ├─logics/
   │  │  └─users.py
-  │  ├─models
+  │  ├─models/
   │  │  └─users.py
   │  ├─base.py
   │  ├─base_class.py
-  │  ├─session.py
-  ├─schemas
+  │  └─session.py
+  ├─schemas/
   │  └─users.py
-  └─tests
-     └─
+  └─tests/
+     │  └─conftest.py
+     └─test_routes/
+         └─test_users.py
 ```
