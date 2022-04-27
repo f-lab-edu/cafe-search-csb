@@ -1,0 +1,49 @@
+name: DEPLOY
+
+on:
+  workflow_run:
+    workflows: ["TEST"]
+    branches:
+      - 'main'
+    types:
+      - completed
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v2
+      - id: setenv
+        name: Set env
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/v}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to NCP Container Registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.NCP_ACCESS_KEY }}
+          password: ${{ secrets.NCP_SECRET_KEY }}
+          registry: ${{ secrets.NCP_REG_ENDPOINT }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ secrets.NCP_REG_ENDPOINT }}/cafe-search:${{ steps.setenv.outputs.tag }}
+
+      - name: Deploy
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: 8000
+          RELEASE_VERSION: ${{ steps.setenv.outputs.tag }}
+          CA_CERT: ${{ secrets.DOCKER_CA_CERT }}
+          CERT: ${{ secrets.DOCKER_CERT }}
+          KEY: ${{ secrets.DOCKER_KEY }}
+        run: |
+          echo -n "$CA_CERT" | base64 --decode > ca.pem
+          echo -n "$CERT" | base64 --decode > cert.pem
+          echo -n "$KEY" | base64 --decode > key.pem
+          sh deploy.sh

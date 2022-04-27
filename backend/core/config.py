@@ -25,11 +25,11 @@ class Settings(BaseSettings):
 
 
 class TestSettings(BaseSettings):
-    DB_USERNAME: str
-    DB_PASSWORD: SecretStr
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
+    TEST_DB_USERNAME: str
+    TEST_DB_PASSWORD: SecretStr
+    TEST_DB_HOST: str
+    TEST_DB_PORT: int
+    TEST_DB_NAME: str
 
     TEST_USER_EMAIL = "sbjo@naver.com"
     TEST_USER_PASSWORD = "sbjo"

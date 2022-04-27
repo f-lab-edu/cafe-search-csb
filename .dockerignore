@@ -1,7 +1,6 @@
 __pycache__
 .pytest_cache
 .dockerignore
-.env
 .git
 .gitignore
 .vs
