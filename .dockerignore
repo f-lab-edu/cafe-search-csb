@@ -1,0 +1,14 @@
+__pycache__
+.pytest_cache
+.dockerignore
+.env
+.git
+.gitignore
+.vs
+.vscode
+docker-compose*
+compose*
+Dockerfile*
+README.md
+venv/
+.pre-commit-config.yaml
