@@ -8,27 +8,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_USER: admin
-          MYSQL_PASSWORD: sbjo
-          MYSQL_ROOT_PASSWORD: sbjo
-          MYSQL_DATABASE: testing
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
-
     steps:
-      - name: MySQL Check
-        env:
-          PORT: ${{ job.services.mysql.ports[3306] }}
-        run: |
-          while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
-            sleep 1
-          done
-
       - uses: actions/checkout@v2
       - name: Set Up Python
         uses: actions/setup-python@v2
@@ -41,12 +21,11 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Test
+      - name: Test & Check coverage
         env:
-          DB_USERNAME: admin
-          DB_PASSWORD: sbjo
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_NAME: testing
-        run:
-          pytest
+          TEST_DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          TEST_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          TEST_DB_HOST: ${{ secrets.DB_HOST }}
+          TEST_DB_PORT: ${{ secrets.DB_PORT }}
+          TEST_DB_NAME: ${{ secrets.DB_NAME }}
+        run: coverage run --source=backend -m pytest -v backend/tests
