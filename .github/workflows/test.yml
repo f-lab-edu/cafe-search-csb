@@ -8,7 +8,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
       - uses: actions/checkout@v2
       - name: Set Up Python
         uses: actions/setup-python@v2
@@ -20,7 +19,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-
+          
       - name: Test & Check coverage
         env:
           TEST_DB_USERNAME: ${{ secrets.DB_USERNAME }}
