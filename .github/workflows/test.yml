@@ -23,9 +23,9 @@ jobs:
 
       - name: Test & Check coverage
         env:
-          TEST_DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          TEST_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          TEST_DB_HOST: ${{ secrets.DB_HOST }}
-          TEST_DB_PORT: ${{ secrets.DB_PORT }}
-          TEST_DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
         run: coverage run --source=backend -m pytest -v backend/tests
