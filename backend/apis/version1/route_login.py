@@ -6,7 +6,7 @@ from db.logics.users import get_user, authenticate_user
 from db.logics.login import create_access_token
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import ExpiredSignatureError ,JWTError, jwt
 from schemas.tokens import Token
 from sqlalchemy.orm import Session
 
@@ -37,21 +37,31 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/token")
 def get_current_user_from_token(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
-    authorize_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail="Can't Validate Token"
-    )
-
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.SECRET_ALGORITHM]
         )
         username: str = payload.get("sub")
         if username is None:
-            raise authorize_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Expiration Time Passed."
+            )
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Expiration Time Passed."
+        )
     except JWTError:
-        raise authorize_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Can't Validate Token"
+        )
 
     user = get_user(username=username, db=db)
     if user is None:
-        raise authorize_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Can't Validate Token"
+        )
     return user
