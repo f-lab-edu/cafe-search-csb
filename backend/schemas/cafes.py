@@ -1,20 +1,5 @@
-from typing import List
+from typing import List, Tuple
 from pydantic import BaseModel
-
-
-class CafeCreate(BaseModel):
-    cafename: str
-    location: str
-
-
-class ShowCafe(BaseModel):
-    cafename: str
-    location: str
-    comments: List[str]
-
-    class Config:
-        orm_mode = True
-
 
 class CommentCreate(BaseModel):
     comment: str
@@ -27,3 +12,20 @@ class ShowComment(BaseModel):
 
     class Config:
         orm_mode = True
+
+class CafeCreate(BaseModel):
+    cafename: str
+    location: str
+
+
+class ShowCafe(BaseModel):
+    cafename: str
+    location: str
+    comments: List[ShowComment]
+
+    class Config:
+        orm_mode = True
+        arbitrary_types_allowed = True
+
+
+
