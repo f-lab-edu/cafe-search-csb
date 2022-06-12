@@ -1,11 +1,11 @@
 import logging
 from time import time
 from typing import Optional
-from fastapi.logger import logger
 from fastapi.requests import Request
 from fastapi.responses import Response
 
-def init_fastapi_logger(logger, console=False, logfilename=None):
+def init_fastapi_logger(app_name: str, console: bool = False, logfilename: str = None):
+    logger = logging.getLogger(app_name)
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter('%(asctime)s : %(levelname)-s - %(message)s',
@@ -13,9 +13,8 @@ def init_fastapi_logger(logger, console=False, logfilename=None):
 
     if console:
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
-        logger.addHandler(console)
+        logger.addHandler(console_handler)
 
     if logfilename:
         file_handler = logging.FileHandler(logfilename)
@@ -25,7 +24,7 @@ def init_fastapi_logger(logger, console=False, logfilename=None):
 
     return logger
     
-fastapi_logger = init_fastapi_logger(logger, console=True)
+fastapi_logger = init_fastapi_logger('fastapi-logger', console=True)
 
 async def api_logger(request: Request, response: Optional[Response]=None, error: Optional[Exception]=None):
     processed_time = time() - request.state.start
@@ -52,6 +51,7 @@ async def api_logger(request: Request, response: Optional[Response]=None, error:
         client=user_log,
         processedTime=str(round(processed_time*1000, 5)) + "ms",
     )
+
     if error:
         fastapi_logger.error(log_dict)
     else:
