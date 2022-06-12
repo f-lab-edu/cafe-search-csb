@@ -1,25 +1,33 @@
-import json
 import logging
-from datetime import datetime, timedelta
 from time import time
 from typing import Optional
 from fastapi.logger import logger
 from fastapi.requests import Request
 from fastapi.responses import Response
 
-def init_fastapi_logger(logger):
+def init_fastapi_logger(logger, console=False, logfilename=None):
     logger.setLevel(logging.INFO)
 
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s : %(levelname)-s - %(message)s',
+                                 datefmt='%Y-%m-%d %H:%M:%S')
 
-    logger.addHandler(console)
+    if console:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console)
+
+    if logfilename:
+        file_handler = logging.FileHandler(logfilename)
+        file_handler.setLevel(logging.ERROR)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
     return logger
     
-logger = init_fastapi_logger(logger)
+fastapi_logger = init_fastapi_logger(logger, console=True)
 
 async def api_logger(request: Request, response: Optional[Response]=None, error: Optional[Exception]=None):
-    time_format="%Y/%M/%d %H:%M:%S"
     processed_time = time() - request.state.start
     status_code = error.status_code if error else response.status_code
 
@@ -43,11 +51,9 @@ async def api_logger(request: Request, response: Optional[Response]=None, error:
         errorDetail=error_log,
         client=user_log,
         processedTime=str(round(processed_time*1000, 5)) + "ms",
-        datetimeUTC=datetime.utcnow().strftime(time_format),
-        datetimeKST=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format)
     )
     if error:
-        logger.error(json.dumps(log_dict))
+        fastapi_logger.error(log_dict)
     else:
-        logger.info(json.dumps(log_dict))
+        fastapi_logger.info(log_dict)
 
