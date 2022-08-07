@@ -146,7 +146,7 @@ def read_comments(
 ):
     comments = get_comments_by_cafeid(cafeid=cafeid, db=db)
     if not comments:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Can't Find Comment"
         )
     return comments
