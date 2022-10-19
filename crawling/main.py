@@ -83,6 +83,7 @@ async def send_request(queue: asyncio.Queue, session: aiohttp.ClientSession):
                 break
         else:
             failure_interval -= 1
+            url_map[url] = failure_interval
     results = await asyncio.gather(*fetchers)
     print_result(results, queue)
 
