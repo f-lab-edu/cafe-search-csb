@@ -29,20 +29,22 @@ class TestSettings(BaseSettings):
     DB_PASSWORD: SecretStr
     DB_HOST: str
     DB_PORT: int
-    DB_NAME = "test"
+    DB_NAME: str
 
     TEST_USER_EMAIL = "sbjo@naver.com"
     TEST_USER_PASSWORD = "sbjo"
     TEST_ADMIN_EMAIL = "admin@naver.com"
     TEST_SECOND_USER_EMAIL = "sb@naver.com"
 
-    SECRET_KEY: str = "secret"
+    SECRET_KEY: str
     SECRET_ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
     class Config:
-        env_file = str(BASE_DIR / ".env")
+        env_file = str(BASE_DIR / "dev.env")
         env_file_encoding = "utf-8"
+
+
 
 
 def get_settings():
