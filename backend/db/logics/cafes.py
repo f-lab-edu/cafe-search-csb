@@ -1,12 +1,89 @@
-from typing import List
-from db.models.cafes import Cafe, Comment
-from schemas.cafes import CafeCreate, CommentCreate
+from typing import List, Optional
+from db.models.cafes import Cafe, Comment, Facility, Tag
+from schemas.cafes import CafeCreate, CafeUpdate, CommentCreate
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 
+def get_cafe_facility_tag_dict(cafe: CafeCreate):
+    cafe_dict = {}
+    facility_dict = {}
+    tags = []
+    for k, v in cafe.dict().items():
+        if k not in ("able_facilities", "disable_facilities", "tags") and v is not None:
+            cafe_dict[k] = v
+        elif k == "tags" and v is not None:
+            tags = v.split(" ")
+        elif k in ("able_facilities", "disable_facilities") and v is not None:
+            facility_dict[k] = v
+    return cafe_dict, facility_dict, tags
+
+
+def make_new_cafe_for_db_add(cafe_dict, facility_dict, tags, db: Session) -> Cafe:
+    cafe_obj = Cafe(**cafe_dict)
+    for facility in facility_dict["able_facilities"]:
+        fac = db.query(Facility).filter(Facility.name==facility.value).first()
+        cafe_obj.able_facilities.append(fac)
+    for facility in facility_dict["disable_facilities"]:
+        fac = db.query(Facility).filter(Facility.name==facility.value).first()
+        cafe_obj.disable_facilities.append(fac)
+    for tag in tags:
+        tg = db.query(Tag).filter(Tag.name==tag).first()
+        if tag:
+            cafe_obj.tags.append(tg)
+        else:
+            cafe_obj.tags.append(Tag(name=tag))
+    return cafe_obj
+
+
+def remove_existing_facility_then_add_new(
+    facility_dict, 
+    db,
+    existing_cafe
+):
+    if facility_dict.get("able_facilities", ""):
+        existing_able_facilities = db.query(Facility).filter(Facility.able_cafes.contains(existing_cafe)).all()
+        for fac in existing_able_facilities:
+            existing_cafe.able_facilities.remove(fac)
+        
+        for facility in facility_dict["able_facilities"]:
+            fac = db.query(Facility).filter(Facility.name==facility.value).first()
+            existing_cafe.able_facilities.append(fac)
+
+    if facility_dict.get("disable_facilities", ""):
+        existing_disable_facilities = db.query(Facility).filter(Facility.disable_cafes.contains(existing_cafe)).all()
+        for fac in existing_disable_facilities:
+            existing_cafe.disable_facilities.remove(fac)
+        
+        for facility in facility_dict["disable_facilities"]:
+            fac = db.query(Facility).filter(Facility.name==facility.value).first()
+            existing_cafe.disable_facilities.append(fac)    
+    
+    return existing_cafe
+
+
+def remove_existing_tag_then_add_new(
+    tags,
+    db,
+    existing_cafe
+):
+    existing_tags = db.query(Tag).filter(Tag.cafes.contains(existing_cafe)).all()
+    for tag in existing_tags:
+        existing_cafe.tags.remove(tag)
+
+    for tag_name in tags:
+        tag = db.query(Tag).filter(Tag.name==tag_name).first()
+        if tag:
+            existing_cafe.tags.append(tag)
+        else:
+            tag = Tag(name=tag_name)
+            existing_cafe.tags.append(tag)
+    return existing_cafe
+
+
 def create_new_cafe(cafe: CafeCreate, db: Session):
-    cafe_obj = Cafe(**cafe.dict())
+    cafe_dict, facility_dict, tags = get_cafe_facility_tag_dict(cafe)
+    cafe_obj = make_new_cafe_for_db_add(cafe_dict, facility_dict, tags, db)
     db.add(cafe_obj)
     db.commit()
     return cafe_obj
@@ -24,24 +101,26 @@ def get_all_cafes(limit: int, db: Session):
     return cafes
 
 
-def search_cafe(cafename: str, location: str, db: Session) -> List[Cafe]:
-    if not location:
-        search = f"%{cafename}%"
-        cafes = db.query(Cafe).filter(Cafe.cafename.like(search)).all()
-        return cafes
-    else:
-        name_search = f"%{cafename}%"
-        location_search = f"%{location}%"
+def search_cafe(db: Session, limit: int, cafename: str = None, location: str = None) -> List[Cafe]:
+    name_search = f"%{cafename}%"
+    loc_search = f"%{location}%"
+
+    if cafename and location:
         cafes = (
             db.query(Cafe)
             .filter(
                 and_(
-                    Cafe.cafename.like(name_search), Cafe.location.like(location_search)
+                    Cafe.cafename.like(name_search),
+                    Cafe.jibeonfullname.like(loc_search)
                 )
             )
-            .all()
+            .limit(limit).all()
         )
-        return cafes
+    elif cafename and not location:
+        cafes = db.query(Cafe).filter(Cafe.cafename.like(name_search)).limit(limit).all()
+    elif not cafename and location:
+        cafes = db.query(Cafe).filter(Cafe.jibeonfullname.like(loc_search)).limit(limit).all()
+    return cafes
 
 
 def delete_cafe_by_id(id: int, db: Session):
@@ -57,8 +136,19 @@ def update_cafe_by_id(id: int, cafe: CafeCreate, db: Session):
     existing_cafe = db.query(Cafe).filter(Cafe.id == id)
     if not existing_cafe.first():
         return 0
+    cafe_dict, facility_dict, tags = get_cafe_facility_tag_dict(cafe)
+    if cafe_dict:
+        existing_cafe.update(cafe_dict)
+    
+    existing_cafe = existing_cafe.first()
+    if tags:
+        remove_existing_tag_then_add_new(tags, db, existing_cafe)
+    
+    if facility_dict:
+        remove_existing_facility_then_add_new(
+            facility_dict, db, existing_cafe
+        )
 
-    existing_cafe.update(cafe.__dict__)
     db.commit()
     return 1
 
