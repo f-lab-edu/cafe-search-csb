@@ -30,8 +30,30 @@ def authentication_token_from_email(
 
 
 def create_cafe(client: TestClient, headers: Dict[str, str]):
-    data = {"cafename": "cafe1", "location": "testlocation"}
-    client.post("/cafes/create", data=json.dumps(data), headers=headers)
+    datas = [
+        {
+            "cafename" : "cafe1",
+            "phone" : "02-222-2222",
+            "jibeonfullname" : "서울 동대문구 회기동 124-1",
+            "dorofullname" : "서울 동대문구 이문로 125",
+            "imageurl" : "",
+            "tags" : "분위기좋은 데이트코스",
+            "able_facilities" : ["흡연", "wifi"],
+            "disable_facilities" : ["주차"]
+        },
+        {
+            "cafename" : "cafe2",
+            "phone" : "02-333-3333",
+            "jibeonfullname" : "서울 마포구 망원동 425-33",
+            "dorofullname" : "서울 마포구 망원로 7길 31-14",
+            "imageurl" : "www.www.www.",
+            "tags" : "로스팅카페",
+            "able_facilities" : ["주차", "wifi"],
+            "disable_facilities" : ["놀이방", "흡연"]
+        }
+    ]
+    for data in datas:
+        client.post("/cafes/create", data=json.dumps(data), headers=headers)
 
 
 def create_comment(client: TestClient, headers: Dict[str, str]):
