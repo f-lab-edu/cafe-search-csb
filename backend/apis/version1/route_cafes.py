@@ -15,7 +15,7 @@ from db.logics.cafes import (
     update_cafe_by_id,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
-from schemas.cafes import CafeCreate, ShowCafe, CommentCreate, ShowComment
+from schemas.cafes import CafeCreate, CafeUpdate, ShowCafe, CommentCreate, ShowComment
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -27,7 +27,15 @@ class LimitParams:
         self.limit = limit
 
 
-@router.post("/create", response_model=ShowCafe)
+@router.get("", response_model=List[ShowCafe])
+def read_cafes(
+    db: Session = Depends(get_db), params: LimitParams = Depends(LimitParams)
+):
+    cafes = get_all_cafes(db=db, limit=params.limit)
+    return cafes
+
+
+@router.post("", response_model=ShowCafe)
 def create_cafe(
     cafe: CafeCreate,
     db: Session = Depends(get_db),
@@ -42,7 +50,27 @@ def create_cafe(
     return cafe
 
 
-@router.get("/get/{id}", response_model=ShowCafe)
+@router.post("/search", response_model=List[ShowCafe])
+def searching_cafe(
+    cafename: str = None,
+    location: str = None,
+    db: Session = Depends(get_db),
+    params: LimitParams = Depends(LimitParams)
+):
+    if not cafename and not location:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Must Input Cafe Name or Location",
+        )
+    cafes = search_cafe(db, params.limit,cafename=cafename,location=location)
+    if not cafes:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Can't find Cafe",
+        )
+    return cafes
+
+@router.get("/{id}", response_model=ShowCafe)
 def read_cafe(id: int, db: Session = Depends(get_db)):
     cafe = get_cafe_by_id(id=id, db=db)
     if not cafe:
@@ -53,18 +81,10 @@ def read_cafe(id: int, db: Session = Depends(get_db)):
     return cafe
 
 
-@router.get("/all", response_model=List[ShowCafe])
-def read_cafes(
-    db: Session = Depends(get_db), params: LimitParams = Depends(LimitParams)
-):
-    cafes = get_all_cafes(db=db, limit=params.limit)
-    return cafes
-
-
-@router.post("/update/{id}")
+@router.post("/{id}")
 def update_cafe(
     id: int,
-    cafe: CafeCreate,
+    cafe: CafeUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_from_token),
 ):
@@ -82,28 +102,7 @@ def update_cafe(
     return {"msg": "Updated Successfully"}
 
 
-@router.get("/search", response_model=List[ShowCafe])
-def searching_cafe(
-    cafename: str = None,
-    location: str = None,
-    db: Session = Depends(get_db),
-    params: LimitParams = Depends(LimitParams),
-):
-    if not cafename and not location:
-        return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Must Input Cafe Name or Location",
-        )
-    cafes = search_cafe(cafename, location, db)
-    if not cafes:
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Can't find Cafe",
-        )
-    return cafes[params.offest : params.offset + params.limit]
-
-
-@router.delete("/delete/{id}")
+@router.delete("/{id}")
 def delete_cafe(
     id: int,
     db: Session = Depends(get_db),
@@ -138,7 +137,7 @@ def add_comment(
     return comment
 
 
-@router.get("/{cafeid}/comments", response_model=List[ShowComment])
+@router.get("/{cafeid}/comment", response_model=List[ShowComment])
 def read_comments(
     cafeid: int,
     db: Session = Depends(get_db),
