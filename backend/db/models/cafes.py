@@ -5,11 +5,26 @@ from db.base_class import Base
 from db.models.base import BaseMixin
 
 
-cafe_facility = Table(
-    "cafe_facility",
+cafe_ablefacility = Table(
+    "cafe_ablefacility",
     Base.metadata,
     Column("cafe_id", ForeignKey("cafe.id")),
     Column("facility_id", ForeignKey("facility.id"))
+)
+
+cafe_disablefacility = Table(
+    "cafe_disablefacility",
+    Base.metadata,
+    Column("cafe_id", ForeignKey("cafe.id")),
+    Column("facility_id", ForeignKey("facility.id"))
+)
+
+
+cafe_tag = Table(
+    "cafe_tag",
+    Base.metadata,
+    Column("cafe_id", ForeignKey("cafe.id")),
+    Column("tag_id", ForeignKey("tag.id"))
 )
 
 
@@ -19,10 +34,10 @@ class Cafe(Base, BaseMixin):
     jibeonfullname = Column(String(150), nullable=False)
     dorofullname = Column(String(150), nullable=False)
     imageurl = Column(String(100))
-    tags = Column(String(100))
     comments = relationship("Comment", back_populates="cafe")
-    able_facilities = relationship("Facility", secondary=cafe_facility, back_populates="cafes")
-    disable_facilities = relationship("Facility", secondary=cafe_facility, back_populates="cafes")
+    able_facilities = relationship("Facility", secondary=cafe_ablefacility, back_populates="able_cafes")
+    disable_facilities = relationship("Facility", secondary=cafe_disablefacility, back_populates="disable_cafes")
+    tags = relationship("Tag", secondary=cafe_tag, back_populates="cafes")
 
 
 class Comment(Base, BaseMixin):
@@ -36,4 +51,10 @@ class Comment(Base, BaseMixin):
 
 class Facility(Base, BaseMixin):
     name = Column(String(10), nullable=False)
-    cafes = relationship("Cafe", secondary=cafe_facility, back_populates="facilities")
+    able_cafes = relationship("Cafe", secondary=cafe_ablefacility, back_populates="able_facilities")
+    disable_cafes = relationship("Cafe", secondary=cafe_disablefacility, back_populates="disable_facilities")
+
+
+class Tag(Base, BaseMixin):
+    name = Column(String(10), nullable=False)
+    cafes = relationship("Cafe", secondary=cafe_tag, back_populates="tags")

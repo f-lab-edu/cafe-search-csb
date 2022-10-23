@@ -25,6 +25,9 @@ class Settings(BaseSettings):
 
 
 class TestSettings(BaseSettings):
+    PROJECT_NAME: str = "Cafe Search"
+    PROJECT_VERSION: str = "1.0.0"
+
     DB_USERNAME: str
     DB_PASSWORD: SecretStr
     DB_HOST: str
@@ -43,8 +46,6 @@ class TestSettings(BaseSettings):
     class Config:
         env_file = str(BASE_DIR / "dev.env")
         env_file_encoding = "utf-8"
-
-
 
 
 def get_settings():
