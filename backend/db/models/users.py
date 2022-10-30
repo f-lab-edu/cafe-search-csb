@@ -9,4 +9,5 @@ class User(Base, BaseMixin):
     email = Column(String(60), unique=True, nullable=False, index=True)
     hashed_password = Column(String(100), nullable=False)
     is_superuser = Column(Boolean(), default=False)
+    is_able = Column(Boolean(), default=True)
     comments = relationship("Comment", back_populates="user")

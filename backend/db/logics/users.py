@@ -29,3 +29,9 @@ def authenticate_user(username: str, password: str, db: Session):
 def get_user(username: str, db: Session) -> User:
     user = db.query(User).filter(User.email == username).first()
     return user
+
+
+def delete_user(user: User, db: Session):
+    user.is_able = False
+    db.commit()
+    return 1

@@ -1,10 +1,11 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, constr, conint, validator
+
 
 class CommentCreate(BaseModel):
-    comment: str
-    like: int
+    comment: constr(min_length=1, max_length=255)
+    like: conint(gt=0, lt=5)
 
 
 class ShowComment(BaseModel):
@@ -39,22 +40,37 @@ class Facility(str, Enum):
 
 
 class CafeCreate(BaseModel):
-    cafename: str
-    phone: Optional[str]
-    jibeonfullname: str
-    dorofullname: str
-    imageurl: Optional[str]
+    cafename: constr(min_length=1, max_length=20)
+    phone: Optional[constr(max_length=20)]
+    jibeonfullname: constr(min_length=1, max_length=150)
+    dorofullname: constr(min_length=1, max_length=150)
+    imageurl: Optional[constr(max_length=100)]
     tags: Optional[str]
     able_facilities: List[Facility]
     disable_facilities: List[Facility]
 
+    @validator("able_facilities", allow_reuse=True)
+    def check_duplicate(cls, v):
+        remove_duplicate = set(fac.value for fac in v)
+        assert len(v) == len(remove_duplicate), "Facility Cannot Duplicated"
+
+    @validator("disable_facilities", allow_reuse=True)
+    def check_duplicate(cls, v):
+        remove_duplicate = set(fac.value for fac in v)
+        assert len(v) == len(remove_duplicate), "Facility Cannot Duplicated"
+
+    @validator("tags")
+    def check_tag_duplicate(cls, v):
+        remove_duplicate = set(v.split())
+        assert len(v) == len(remove_duplicate), "Tag Cannot Duplicated"
+
 
 class CafeUpdate(BaseModel):
-    cafename: Optional[str]
-    phone: Optional[str]
-    jibeonfullname: Optional[str]
-    dorofullname: Optional[str]
-    imageurl: Optional[str]
+    cafename: Optional[constr(min_length=1, max_length=20)]
+    phone: Optional[constr(max_length=20)]
+    jibeonfullname: Optional[constr(min_length=1, max_length=150)]
+    dorofullname: Optional[constr(min_length=1, max_length=150)]
+    imageurl: Optional[constr(max_length=100)]
     tags: Optional[str]
     able_facilities: Optional[List[Facility]]
     disable_facilities: Optional[List[Facility]]
